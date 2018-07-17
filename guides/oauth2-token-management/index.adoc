@@ -18,6 +18,7 @@
 
 * Docker
 * Curl
+* TAG Quickstarg Guide (optional)
 * Python (optional)
 * Python Pygments (optional)
 
@@ -45,7 +46,8 @@ In TAG, a Security Profile is a runtime configuration of an HTTP Security scheme
 configuring different aspects of the scheme. This allows a complete control of all the generated Tokens, Authentication
 and Authorization that takes place.
 
-TAG already ships with a convenient OAuth 2.0 Profile, that allows you to quickly start issuing OAuth 2.0 Tokens.
+TAG already ships with a convenient default OAuth 2.0 Profile, that allows you to quickly start issuing OAuth 2.0
+Tokens. Of course you are free to create your own to suit your own needs.
 
 == Issue a Token
 
@@ -59,7 +61,7 @@ Usually, to issue a token, we need the following information:
 
 The most common way to issue a token is to use the `password` grant type, given the `username` and `password` of the
 resource owner. This allows you to enable password logins to your own applications. The `client_id` and the
-`client_secret` are used to authenticate the application itself.
+`client_secret` are used to authenticate the third-party application.
 
 In TAG, this means that we need two Accounts. One to identify the user and another one to identify the service. Let's
 try it.
@@ -91,8 +93,8 @@ Click on the `Accounts` to navigate to the `Accounts page`, click the `+` button
 Hit `Save`. Click the `…​` button on the upper right side and select `Add Password` from the menu. In the
 `Add Password` modal window, type `supersecret` as the password and then click the `Save` button.
 
-Next, let's create an `Account` for an application we are developing, the Movie Application. Repeat the same steps to
-create the account with the following information:
+Next, let's create an `Account` for an application we are developing, the Movie Client Application. Repeat the same
+steps to create the account with the following information:
 
 * Username: _movies_app_
 * Email: _movies_app@email.com_
@@ -105,8 +107,8 @@ We should now be ready to issue our first token.
 
 === Issue the Token
 
-To issue the OAuth 2.0 Token, we are going to use 'curl' command to send the request to TAG. Data needs to be posted
-as form and we are going to send the following information:
+To issue the OAuth 2.0 Token, we are going to use the 'curl' command to send the request to TAG. Data needs to be
+posted as a Form with the following Form Parameters:
 
 |===
 |Form Parameter |Value
@@ -153,13 +155,14 @@ Run the command. You should get an output simular to this:
 }
 ```
 
-TIP: If you have Python and Python Pygmentize installed you can pipe the curl result with `| python -m json.tool | pygmentize -l json` to get a pretty version of the JSON response.
+TIP: If you have `Python` and `Python Pygments` installed you can pipe the `curl` result with
+`| python -m json.tool | pygmentize -l json` to get a pretty version of the JSON response.
 
 The OAuth 2.0 Token Response contains:
 
 * _access_token_ The actual access token in JWT format issued by TAG.
 * _expires_in_ The duration of time the access token is granted for (in seconds).
-* _refresh_token_ A refresh token which applications can use to obtain another access token.
+* _refresh_token_ A refresh token which clients can use to obtain another access token.
 * _token_type_ The type of the token. Usually `bearer`.
 * _scope_ a list of roles assigned to the user in the TAG.
 
@@ -168,8 +171,8 @@ The OAuth 2.0 Token Response contains:
 Tokens may be invalid if they are beyond their expiration date or if the key used to sign it doesn't match the
 OAuth 2.0 Security Profile of TAG.
 
-The TAG provides you a specific endpoint that you can use to validate if an `Access Token` is valid. To validate a
-token, you need the `access_token` response value and post it in the `token` form parameter with the following `curl`
+The TAG provides you a specific endpoint that you can use to validate if an Access Token is valid. To validate a
+token, you need the `access_token` response value and post it in the `token` Form Parameter with the following `curl`
 command:
 
 ```bash
@@ -196,23 +199,23 @@ If the Token is valid you should get a response similar to:
 ```
 
 You could also validate the JWT, using the external service http://jwt.io[jwt.io, window="_blank"]. Just copy the
-token into the `Encoded` text area. It actually unwraps the JWT, so you can see how it looks inside.
+token into the `Encoded` text area of the webpage. It actually unwraps the JWT, so you can see how it looks.
 
 To verify the TAG signature, you need the Public and Private key. These can be retrieved from the OAuth 2.0 Security
-Profile Detail page. Go to http://localhost:8080/tag/profile/oauth2/oauth2-profile and scroll to the `Signature`
+Profile Detail page. Go to http://localhost:8080/tag/profile/oauth2/oauth2-profile and scroll down to the `Signature`
 section. You should find a `Key Id` entry. Mouseover the `...` icon to reveal options to view the Public and Private
 key. You can copy both and used them in http://jwt.io[jwt.io, window="_blank"] by the `Verify Signature` section to
 validate the token.
 
 == Refresh a Token
 
-By default, TAG issues a Refresh Token that applications can use to retrieve a new Access Token when expired. This
+By default, TAG issues a Refresh Token that clients can use to retrieve a new Access Token when expired. This
 allows you to limit the risk of leaking an Access Token (depending on its expirations period). It also prevents the
 need to resent the user credentials again since the new token is now obtained using the Refresh Token.
 
 To refresh an `Access Token`, you need the `refresh_token` response value obtained in the issued token and post it in
-the `refresh_token` parameters. You also need to set a `grant_type` of `refresh_token`. The `curl` command will look
-like this:
+the `refresh_token` parameter. You also need to set the `grant_type` parameter to `refresh_token`. The `curl` command
+will look like this:
 
 ```bash
 curl -s \
@@ -222,7 +225,7 @@ curl -s \
         --data-urlencode "refresh_token=eyJraWQiOiJvYXV0aDIta2V5cGFpciIsImN0eSI6Impzb24iLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbi10eXBlIjoicmVmcmVzaC10b2tlbiIsIm5iZiI6MTUzMTg0MzY0NiwiaXNzIjoiXC9vYXV0aDJcL3Rva2VuIiwidGFnLWludGVybmFsIjp7Imp3dC1hY2Nlc3MtdG9rZW4iOiJleUpoYkdjaU9pSnViMjVsSW4wLmV5SjBiMnRsYmkxMGVYQmxJam9pWVdOalpYTnpMWFJ2YTJWdUlpd2libUptSWpveE5UTXhPRFF6TmpRMkxDSnliMnhsY3lJNld5SmhaRzFwYm1semRISmhkRzl5SWwwc0ltNWhiV1VpT2lKaGJHbGpaU0lzSW1semN5STZJbHd2YjJGMWRHZ3lYQzkwYjJ0bGJpSXNJbWR5YjNWd2N5STZXMTBzSW5SaFp5MXBiblJsY201aGJDSTZleUpuY21GdWRDMTBlWEJsSWpvaWNHRnpjM2R2Y21RaUxDSndjbTltYVd4bElqb2lUMEYxZEdneUlGQnliMlpwYkdVaUxDSmpiR2xsYm5RdGFXUWlPaUp0YjNacFpYTmZZWEJ3SWl3aWRtVnljMmx2YmlJNklqRXVNQ0lzSW5WelpYSnVZVzFsSWpvaVlXeHBZMlVpZlN3aVpYaHdJam94TlRNeE9EUTFORFEyTENKcFlYUWlPakUxTXpFNE5ETTJORFlzSW1WdFlXbHNJam9pWVd4cFkyVkFaVzFoYVd3dVkyOXRJaXdpYW5ScElqb2lNRE5qT1dJeE4ySXlOakZrWXpRd1l5SjkuIiwiZ3JhbnQtdHlwZSI6InBhc3N3b3JkIiwicHJvZmlsZSI6Ik9BdXRoMiBQcm9maWxlIiwicmVmcmVzaC10aW1lcyI6MCwiY2xpZW50LWlkIjoibW92aWVzX2FwcCIsInZlcnNpb24iOiIxLjAiLCJ1c2VybmFtZSI6ImFsaWNlIn0sImV4cCI6MTUzNDQzNTY0NiwiaWF0IjoxNTMxODQzNjQ2LCJqdGkiOiJmYjU2NzcyY2QxYzk2YWEzIn0.NMugrjGdCBZ28jKuJxAGXHlRiU53hCVnLSEpTyOVXMtDhLhsJstYmQ1YY5KqcZWhAvazqCVhyyh7IGsx-dSS9NE0FsLRSe3iwaYc6myveLzqALdXQcmReWZ4PIKW3us0UnDQExD9jv4zka0esf-5etBDHxW8AkmuSqzeAVHISG0ik8f-K05uvPGPc0UBAZdpTO0pIAWfMAfeM5ui7ZNLbpBnwGkyL1lmfGS0AN4Bvp4jJPJLsnVbjVvbUGasdoenQySbehs-mnyeWd5WyLlmIGS5TdcDVfuF6MnZJPMrOS6ZW_4CYlEB8F-GDg9puzRF1Ok0MczCyKJFhqfEIhybjg"
 ```
 
-And you should get a new token:
+And the response should get you a new token:
 
 ```json
 {
@@ -234,8 +237,8 @@ And you should get a new token:
 }
 ```
 
-A new Access Token and Refresh Token are issued. The application needs to use the new issued Access Token, and when it
-needs to refresh again, the new Refresh Token.
+A new Access Token and Refresh Token are issued. The client uses the new issued Access Token, and when it needs to
+refresh again, uses new Refresh Token.
 
 If you try to refresh with an old Refresh Token, you will get the following error:
 
@@ -248,12 +251,12 @@ If you try to refresh with an old Refresh Token, you will get the following erro
 
 == Revoke a Token
 
-It is possible for the application to Revoke a Token, making it unusable. This allows to simulate a logout mechanism
-for clients and to clean up resources associated with the Token. TAG only allows revoking Refresh Tokens, since it
+It is possible for the client to Revoke a Token, making it unusable. This allows to simulate a logout mechanism
+for clients and clean up resources associated with the Token. TAG only allows revoking Refresh Tokens, since it
 doesn't keep the state about Access Tokens.
 
 The TAG provides you a specific endpoint that you can use to revoke an `Access Token`. To revoke a token, you need the
-`access_token` response value and post it in the `token` form parameter with the following `curl` command:
+`access_token` response value and post it in the `token` Form Parameter with the following `curl` command:
 
 ```bash
 curl -s -i \
@@ -266,7 +269,7 @@ curl -s -i \
 And the response should be a plain `200 - OK`.
 
 It is also possible to revoke the Refresh Token via the TAG UI. Just go to `http://localhost:8080/tag/refresh-tokens`.
-You should get a list of all valid Refresh Tokens. Deleting a Refresh Token entry is the same as Revoking it.
+You should get a list of all the valid Refresh Tokens. Deleting a Refresh Token entry is the same as Revoking it.
 
 == Cleanup
 
@@ -287,7 +290,7 @@ docker remove tag
 This guide was an introduction to the TAG OAuth 2.0 Token Management. It taught you how to issue, validate, refresh and
 revoke OAuth 2.0 tokens.
 
-With TAG OAuth 2.0 tokens, you can issue authorization tokens to third-party applications with the approval of the
+With TAG OAuth 2.0 tokens, you can issue authorization tokens to third-party clients with the approval of the
 resource owner, exposing only a limited fraction of the user information.
 
 Use TAG OAuth 2.0 tokens to share the user information in a safe and reliable way.
