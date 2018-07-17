@@ -42,7 +42,7 @@ with.
 == OAuth 2.0 Security Profile
 
 In TAG, a Security Profile is a runtime configuration of an HTTP Security scheme. It offers the flexibility of
-configuring different aspects to the scheme. This allows a complete control of all the generated Toeken, Authentication
+configuring different aspects of the scheme. This allows a complete control of all the generated Tokens, Authentication
 and Authorization that takes place.
 
 TAG already ships with a convenient OAuth 2.0 Profile, that allows you to quickly start issuing OAuth 2.0 Tokens.
@@ -66,7 +66,7 @@ try it.
 
 == Run the Sample
 
-IMPORTANT: If you already have TAG running from another quickstart guide you can skip this step. Or if you have the
+IMPORTANT: If you already have TAG running from another quick start guide you can skip this step. Or if you have the
 container already create but stopped, start it with the command `docker start tag`.
 
 Use Docker to start an instance of the TAG with the command:
@@ -109,7 +109,7 @@ To issue the OAuth 2.0 Token, we are going to use 'curl' command to send the req
 as form and we are going to send the following information:
 
 |===
-|Form Paramter |Value
+|Form Parameter |Value
 
 |grant_type
 |password
@@ -161,15 +161,16 @@ The OAuth 2.0 Token Response contains:
 * _expires_in_ The duration of time the access token is granted for (in seconds).
 * _refresh_token_ A refresh token which applications can use to obtain another access token.
 * _token_type_ The type of the token. Usually `bearer`.
-* _scope_ a list of roles assigned to the user in TAG.
+* _scope_ a list of roles assigned to the user in the TAG.
 
 == Validate a Token
 
-Tokens may be invalid if they are beyond their expiration date or if they key used to sign it doesn't match the
+Tokens may be invalid if they are beyond their expiration date or if the key used to sign it doesn't match the
 OAuth 2.0 Security Profile of TAG.
 
-TAG provides you a specific endpoint that you can use to validate if an `Access Token` is valid. To validate a token,
-you need the `access_token` response value and post it in the `token` form parameter with the following `curl` command:
+The TAG provides you a specific endpoint that you can use to validate if an `Access Token` is valid. To validate a
+token, you need the `access_token` response value and post it in the `token` form parameter with the following `curl`
+command:
 
 ```bash
 curl -s \
@@ -205,9 +206,9 @@ validate the token.
 
 == Refresh a Token
 
-By default, TAG issues a Refresh Token that applications can use to retrieve a new Access Token when exprired. This
-allows you to limit the risk of leaking an Access Token (depending of its expirations period). It also prevents the
-need to resent the user credentails again since the new token is now obtained using the Refresh Token.
+By default, TAG issues a Refresh Token that applications can use to retrieve a new Access Token when expired. This
+allows you to limit the risk of leaking an Access Token (depending on its expirations period). It also prevents the
+need to resent the user credentials again since the new token is now obtained using the Refresh Token.
 
 To refresh an `Access Token`, you need the `refresh_token` response value obtained in the issued token and post it in
 the `refresh_token` parameters. You also need to set a `grant_type` of `refresh_token`. The `curl` command will look
@@ -236,7 +237,7 @@ And you should get a new token:
 A new Access Token and Refresh Token are issued. The application needs to use the new issued Access Token, and when it
 needs to refresh again, the new Refresh Token.
 
-If you try to refresh with an old Refereh Token, you will get the following error:
+If you try to refresh with an old Refresh Token, you will get the following error:
 
 ```json
 {
@@ -251,7 +252,7 @@ It is possible for the application to Revoke a Token, making it unusable. This a
 for clients and to clean up resources associated with the Token. TAG only allows revoking Refresh Tokens, since it
 doesn't keep the state about Access Tokens.
 
-TAG provides you a specific endpoint that you can use to revoke an `Access Token`. To revoke a token, you need the
+The TAG provides you a specific endpoint that you can use to revoke an `Access Token`. To revoke a token, you need the
 `access_token` response value and post it in the `token` form parameter with the following `curl` command:
 
 ```bash
@@ -286,7 +287,7 @@ docker remove tag
 This guide was an introduction to the TAG OAuth 2.0 Token Management. It taught you how to issue, validate, refresh and
 revoke OAuth 2.0 tokens.
 
-With TAG OAuth 2.0 tokens, you can issue authorization tokens to third party applications with the approval of the
+With TAG OAuth 2.0 tokens, you can issue authorization tokens to third-party applications with the approval of the
 resource owner, exposing only a limited fraction of the user information.
 
 Use TAG OAuth 2.0 tokens to share the user information in a safe and reliable way.
