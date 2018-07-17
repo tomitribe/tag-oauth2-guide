@@ -49,6 +49,8 @@ and Authorization that takes place.
 TAG already ships with a convenient default OAuth 2.0 Profile, that allows you to quickly start issuing OAuth 2.0
 Tokens. Of course you are free to create your own to suit your own needs.
 
+image::oauth2-token-management-01-oauth2-profile.png[title="TAG OAuth 2.0 Security Profile"]
+
 == Issue a Token
 
 Usually, to issue a token, we need the following information:
@@ -90,8 +92,12 @@ Click on the `Accounts` to navigate to the `Accounts page`, click the `+` button
 * Fullname: _Alice_
 * Roles: _administrator_
 
+image::oauth2-token-management-02-create-account.png[title="Create Account"]
+
 Hit `Save`. Click the `…​` button on the upper right side and select `Add Password` from the menu. In the
 `Add Password` modal window, type `supersecret` as the password and then click the `Save` button.
+
+image::oauth2-token-management-03-add-password.png[title="Add Password"]
 
 Next, let's create an `Account` for an application we are developing, the Movie Client Application. Repeat the same
 steps to create the account with the following information:
@@ -102,6 +108,8 @@ steps to create the account with the following information:
 
 When setting the password, instead of picking the `Add Password` option, use the `Add Client Secret`. Use the secret
 `moviessecret`, keep the default OAuth Security Profile and hit `Save`.
+
+image::oauth2-token-management-04-add-client-secret.png[title="Add Client Secret"]
 
 We should now be ready to issue our first token.
 
@@ -204,8 +212,14 @@ token into the `Encoded` text area of the webpage. It actually unwraps the JWT, 
 To verify the TAG signature, you need the Public and Private key. These can be retrieved from the OAuth 2.0 Security
 Profile Detail page. Go to http://localhost:8080/tag/profile/oauth2/oauth2-profile and scroll down to the `Signature`
 section. You should find a `Key Id` entry. Mouseover the `...` icon to reveal options to view the Public and Private
-key. You can copy both and used them in http://jwt.io[jwt.io, window="_blank"] by the `Verify Signature` section to
+key.
+
+image::oauth2-token-management-05-public-key.png[title="OAuth 2.0 Security Profile Public Key"]
+
+You can copy both and used them in http://jwt.io[jwt.io, window="_blank"] by the `Verify Signature` section to
 validate the token.
+
+image::oauth2-token-management-06-jwtio-validate.png[title="JWT.io Validate OAuth 2.0 Token"]
 
 == Refresh a Token
 
@@ -237,7 +251,7 @@ And the response should get you a new token:
 }
 ```
 
-A new Access Token and Refresh Token are issued. The client uses the new issued Access Token, and when it needs to
+Both Access Token and Refresh Token are issued again. The client uses the new issued Access Token, and when it needs to
 refresh again, uses new Refresh Token.
 
 If you try to refresh with an old Refresh Token, you will get the following error:
@@ -270,6 +284,8 @@ And the response should be a plain `200 - OK`.
 
 It is also possible to revoke the Refresh Token via the TAG UI. Just go to `http://localhost:8080/tag/refresh-tokens`.
 You should get a list of all the valid Refresh Tokens. Deleting a Refresh Token entry is the same as Revoking it.
+
+image::oauth2-token-management-07-refresh-tokens.png[title="Refresh Tokens List"]
 
 == Cleanup
 
