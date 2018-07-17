@@ -1,0 +1,9 @@
+%YAML 1.2
+---
+documentation:
+
+  - doc_root: 'guides/oauth2-token-management/index.adoc'
+    name: 'Examples'
+    display_name: 'OAuth 2.0 Token Management'
+    public_path: 'en/api-gateway/oauth2-token-management'
+    single_page: 'true'

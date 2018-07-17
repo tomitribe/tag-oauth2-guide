@@ -1,0 +1,300 @@
+:encoding: UTF-8
+:linkattrs:
+:sectlink:
+:sectanchors:
+:sectid:
+:imagesdir: media
+:icons: font
+:leveloffset: 1
+
+= OAuth 2.0 Token Management Guide
+
+== Learning Objectives
+
+* Learn about the TAG OAuth 2.0 Security Profile.
+* Learn how to manage an OAuth 2.0 Token (issue, validate, refresh and revoke).
+* Learn about the different configuration options.
+
+== Prerequisites
+
+* Docker
+* Curl
+* Python (optional)
+* Python Pygments (optional)
+
+== The OAuth 2.0 Authorization Framework
+
+The OAuth 2.0 Authorization framework provides a way to obtain limited access to user accounts to an HTTP service.
+
+Instead of using the resource owner's credentials to access protected resources, the client obtains an access
+token -- a string denoting a specific scope, lifetime, and other access attributes.  Access tokens are issued to
+third-party clients by TAG with the approval of the resource owner. The client uses the access token to access the
+protected resources hosted by TAG or any other resource server.
+
+The TAG OAuth 2.0 implementation, based on the https://tools.ietf.org/html/rfc6749[RFC OAuth2 Authorization Framework],
+uses JSON Web Tokens (JWT https://tools.ietf.org/html/rfc7519[RFC JSON Web Tokens]) as the tokens issued and used to
+authenticate to access endpoints.
+
+JWT tokens consist of a header and a set of claims, which are both Base64 encoded, and a signature calculated using RSA
+with SHA256. Overall, this creates three Base64 strings which are concatenated together with dots (.). Each use of a
+JWT token within TAG is validated using the TAG RSA public key, preventing tokens issued by the TAG from being tampered
+with.
+
+== OAuth 2.0 Security Profile
+
+In TAG, a Security Profile is a runtime configuration of an HTTP Security scheme. It offers the flexibility of
+configuring different aspects to the scheme. This allows a complete control of all the generated Toeken, Authentication
+and Authorization that takes place.
+
+TAG already ships with a convenient OAuth 2.0 Profile, that allows you to quickly start issuing OAuth 2.0 Tokens.
+
+== Issue a Token
+
+Usually, to issue a token, we need the following information:
+
+* grant_type
+* username
+* password
+* client_id
+* client_secret
+
+The most common way to issue a token is to use the `password` grant type, given the `username` and `password` of the
+resource owner. This allows you to enable password logins to your own applications. The `client_id` and the
+`client_secret` are used to authenticate the application itself.
+
+In TAG, this means that we need two Accounts. One to identify the user and another one to identify the service. Let's
+try it.
+
+== Run the Sample
+
+IMPORTANT: If you already have TAG running from another quickstart guide you can skip this step. Or if you have the
+container already create but stopped, start it with the command `docker start tag`.
+
+Use Docker to start an instance of the TAG with the command:
+
+```
+docker run -e LICENSE=accept --name tag -p 8080:8080 tomitribe/tribestream-api-gateway
+```
+
+=== Setup
+
+Let's start by creating an account. If you have followed the TAG Quickstart Guide, you already know how to do that. If
+you already have an account named `Alice` you can skip this step.
+
+Click on the `Accounts` to navigate to the `Accounts page`, click the `+` button on the upper right side and select
+`Account`. Create a new account with the following information:
+
+* Username: _alice_
+* Email: _alice@email.com_
+* Fullname: _Alice_
+* Roles: _administrator_
+
+Hit `Save`. Click the `…​` button on the upper right side and select `Add Password` from the menu. In the
+`Add Password` modal window, type `supersecret` as the password and then click the `Save` button.
+
+Next, let's create an `Account` for an application we are developing, the Movie Application. Repeat the same steps to
+create the account with the following information:
+
+* Username: _movies_app_
+* Email: _movies_app@email.com_
+* Fullname: _Movies App_
+
+When setting the password, instead of picking the `Add Password` option, use the `Add Client Secret`. Use the secret
+`moviessecret`, keep the default OAuth Security Profile and hit `Save`.
+
+We should now be ready to issue our first token.
+
+=== Issue the Token
+
+To issue the OAuth 2.0 Token, we are going to use 'curl' command to send the request to TAG. Data needs to be posted
+as form and we are going to send the following information:
+
+|===
+|Form Paramter |Value
+
+|grant_type
+|password
+
+|username
+|alice
+
+|password
+|supersecret
+
+|client_id
+|movies_app
+
+|client_secret
+|moviessecret
+
+|===
+
+This translates in the following `curl` command:
+
+```bash
+  curl -s \
+        "http://localhost:8080/oauth2/token" \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        --data-urlencode "grant_type=password" \
+        --data-urlencode "username=alice" \
+        --data-urlencode "password=supersecret" \
+        --data-urlencode "client_id=movies_app" \
+        --data-urlencode "client_secret=moviessecret"
+```
+
+Run the command. You should get an output simular to this:
+
+```json
+{
+    "access_token": "eyJraWQiOiJvYXV0aDIta2V5cGFpciIsImN0eSI6Impzb24iLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbi10eXBlIjoiYWNjZXNzLXRva2VuIiwibmJmIjoxNTMxODQzNjQ2LCJyb2xlcyI6WyJhZG1pbmlzdHJhdG9yIl0sIm5hbWUiOiJhbGljZSIsImlzcyI6Ilwvb2F1dGgyXC90b2tlbiIsImdyb3VwcyI6W10sInRhZy1pbnRlcm5hbCI6eyJncmFudC10eXBlIjoicGFzc3dvcmQiLCJwcm9maWxlIjoiT0F1dGgyIFByb2ZpbGUiLCJjbGllbnQtaWQiOiJtb3ZpZXNfYXBwIiwidmVyc2lvbiI6IjEuMCIsInVzZXJuYW1lIjoiYWxpY2UifSwiZXhwIjoxNTMxODQ1NDQ2LCJpYXQiOjE1MzE4NDM2NDYsImVtYWlsIjoiYWxpY2VAZW1haWwuY29tIiwianRpIjoiNDc4NGNhNGI1MDdiN2ExZiJ9.WqmRH0uBInkqzvVcbvutux3A_iyBlEUmxVB_iD0vcbF0fx7T_291KUGZ0Vc2rsvRkRHWneFw1eUtRm3EzEZmv9PFuyo8eb8vKE0zltD9P4FsT7-NfthXnaZL87QfRXX-fTKO_jCfKL78zN7niX_lcMe31TFh1osnXz8HM_HleOsLJ6gr-FFkytnSoc7MRVWBmAl8fNcDKoF1r9qolzQNo1rzzo-Wlhykr5VtObps083856hwKjKNhYhTScnI6lI0-UAkJEQDIYd3bugLXOsyC3HuXm2ijAnqfrvT6MHxlPkVnYk_Y68hhKQwNQiCN0KAcOY1NQAineFofrYdZiGxMA",
+    "expires_in": 1799,
+    "refresh_token": "eyJraWQiOiJvYXV0aDIta2V5cGFpciIsImN0eSI6Impzb24iLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbi10eXBlIjoicmVmcmVzaC10b2tlbiIsIm5iZiI6MTUzMTg0MzY0NiwiaXNzIjoiXC9vYXV0aDJcL3Rva2VuIiwidGFnLWludGVybmFsIjp7Imp3dC1hY2Nlc3MtdG9rZW4iOiJleUpoYkdjaU9pSnViMjVsSW4wLmV5SjBiMnRsYmkxMGVYQmxJam9pWVdOalpYTnpMWFJ2YTJWdUlpd2libUptSWpveE5UTXhPRFF6TmpRMkxDSnliMnhsY3lJNld5SmhaRzFwYm1semRISmhkRzl5SWwwc0ltNWhiV1VpT2lKaGJHbGpaU0lzSW1semN5STZJbHd2YjJGMWRHZ3lYQzkwYjJ0bGJpSXNJbWR5YjNWd2N5STZXMTBzSW5SaFp5MXBiblJsY201aGJDSTZleUpuY21GdWRDMTBlWEJsSWpvaWNHRnpjM2R2Y21RaUxDSndjbTltYVd4bElqb2lUMEYxZEdneUlGQnliMlpwYkdVaUxDSmpiR2xsYm5RdGFXUWlPaUp0YjNacFpYTmZZWEJ3SWl3aWRtVnljMmx2YmlJNklqRXVNQ0lzSW5WelpYSnVZVzFsSWpvaVlXeHBZMlVpZlN3aVpYaHdJam94TlRNeE9EUTFORFEyTENKcFlYUWlPakUxTXpFNE5ETTJORFlzSW1WdFlXbHNJam9pWVd4cFkyVkFaVzFoYVd3dVkyOXRJaXdpYW5ScElqb2lNRE5qT1dJeE4ySXlOakZrWXpRd1l5SjkuIiwiZ3JhbnQtdHlwZSI6InBhc3N3b3JkIiwicHJvZmlsZSI6Ik9BdXRoMiBQcm9maWxlIiwicmVmcmVzaC10aW1lcyI6MCwiY2xpZW50LWlkIjoibW92aWVzX2FwcCIsInZlcnNpb24iOiIxLjAiLCJ1c2VybmFtZSI6ImFsaWNlIn0sImV4cCI6MTUzNDQzNTY0NiwiaWF0IjoxNTMxODQzNjQ2LCJqdGkiOiJmYjU2NzcyY2QxYzk2YWEzIn0.NMugrjGdCBZ28jKuJxAGXHlRiU53hCVnLSEpTyOVXMtDhLhsJstYmQ1YY5KqcZWhAvazqCVhyyh7IGsx-dSS9NE0FsLRSe3iwaYc6myveLzqALdXQcmReWZ4PIKW3us0UnDQExD9jv4zka0esf-5etBDHxW8AkmuSqzeAVHISG0ik8f-K05uvPGPc0UBAZdpTO0pIAWfMAfeM5ui7ZNLbpBnwGkyL1lmfGS0AN4Bvp4jJPJLsnVbjVvbUGasdoenQySbehs-mnyeWd5WyLlmIGS5TdcDVfuF6MnZJPMrOS6ZW_4CYlEB8F-GDg9puzRF1Ok0MczCyKJFhqfEIhybjg",
+    "scope": "administrator",
+    "token_type": "bearer"
+}
+```
+
+TIP: If you have Python and Python Pygmentize installed you can pipe the curl result with `| python -m json.tool | pygmentize -l json` to get a pretty version of the JSON response.
+
+The OAuth 2.0 Token Response contains:
+
+* _access_token_ The actual access token in JWT format issued by TAG.
+* _expires_in_ The duration of time the access token is granted for (in seconds).
+* _refresh_token_ A refresh token which applications can use to obtain another access token.
+* _token_type_ The type of the token. Usually `bearer`.
+* _scope_ a list of roles assigned to the user in TAG.
+
+== Validate a Token
+
+Tokens may be invalid if they are beyond their expiration date or if they key used to sign it doesn't match the
+OAuth 2.0 Security Profile of TAG.
+
+TAG provides you a specific endpoint that you can use to validate if an `Access Token` is valid. To validate a token,
+you need the `access_token` response value and post it in the `token` form parameter with the following `curl` command:
+
+```bash
+curl -s \
+        "http://localhost:8080/oauth2/introspect" \
+        --user movies:moviessecret \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        --data-urlencode "token=eyJraWQiOiJvYXV0aDIta2V5cGFpciIsImN0eSI6Impzb24iLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbi10eXBlIjoiYWNjZXNzLXRva2VuIiwibmJmIjoxNTMxODQzNjQ2LCJyb2xlcyI6WyJhZG1pbmlzdHJhdG9yIl0sIm5hbWUiOiJhbGljZSIsImlzcyI6Ilwvb2F1dGgyXC90b2tlbiIsImdyb3VwcyI6W10sInRhZy1pbnRlcm5hbCI6eyJncmFudC10eXBlIjoicGFzc3dvcmQiLCJwcm9maWxlIjoiT0F1dGgyIFByb2ZpbGUiLCJjbGllbnQtaWQiOiJtb3ZpZXNfYXBwIiwidmVyc2lvbiI6IjEuMCIsInVzZXJuYW1lIjoiYWxpY2UifSwiZXhwIjoxNTMxODQ1NDQ2LCJpYXQiOjE1MzE4NDM2NDYsImVtYWlsIjoiYWxpY2VAZW1haWwuY29tIiwianRpIjoiNDc4NGNhNGI1MDdiN2ExZiJ9.WqmRH0uBInkqzvVcbvutux3A_iyBlEUmxVB_iD0vcbF0fx7T_291KUGZ0Vc2rsvRkRHWneFw1eUtRm3EzEZmv9PFuyo8eb8vKE0zltD9P4FsT7-NfthXnaZL87QfRXX-fTKO_jCfKL78zN7niX_lcMe31TFh1osnXz8HM_HleOsLJ6gr-FFkytnSoc7MRVWBmAl8fNcDKoF1r9qolzQNo1rzzo-Wlhykr5VtObps083856hwKjKNhYhTScnI6lI0-UAkJEQDIYd3bugLXOsyC3HuXm2ijAnqfrvT6MHxlPkVnYk_Y68hhKQwNQiCN0KAcOY1NQAineFofrYdZiGxMA"
+```
+
+If the Token is valid you should get a response similar to:
+
+```json
+{
+    "active": true,
+    "exp": 1531838438000,
+    "iat": 1531836638000,
+    "iss": "/oauth2/token",
+    "jti": "6d0dc5c011a29b8b",
+    "nbf": 1531836638000,
+    "token_type": "bearer",
+    "username": "alice"
+}
+```
+
+TODO - Add example for failure. Need to fix bug.
+
+== Refresh a Token
+
+By default, TAG issues a Refresh Token that applications can use to retrieve a new Access Token when exprired. This
+allows you to limit the risk of leaking an Access Token (depending of its expirations period). It also prevents the
+need to resent the user credentails again since the new token is now obtained using the Refresh Token.
+
+To refresh an `Access Token`, you need the `refresh_token` response value obtained in the issued token and post it in
+the `refresh_token` parameters. You also need to set a `grant_type` of `refresh_token`. The `curl` command will look
+like this:
+
+```bash
+curl -s \
+        "http://localhost:8080/oauth2/token" \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        --data-urlencode "grant_type=refresh_token" \
+        --data-urlencode "refresh_token=eyJraWQiOiJvYXV0aDIta2V5cGFpciIsImN0eSI6Impzb24iLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbi10eXBlIjoicmVmcmVzaC10b2tlbiIsIm5iZiI6MTUzMTg0MzY0NiwiaXNzIjoiXC9vYXV0aDJcL3Rva2VuIiwidGFnLWludGVybmFsIjp7Imp3dC1hY2Nlc3MtdG9rZW4iOiJleUpoYkdjaU9pSnViMjVsSW4wLmV5SjBiMnRsYmkxMGVYQmxJam9pWVdOalpYTnpMWFJ2YTJWdUlpd2libUptSWpveE5UTXhPRFF6TmpRMkxDSnliMnhsY3lJNld5SmhaRzFwYm1semRISmhkRzl5SWwwc0ltNWhiV1VpT2lKaGJHbGpaU0lzSW1semN5STZJbHd2YjJGMWRHZ3lYQzkwYjJ0bGJpSXNJbWR5YjNWd2N5STZXMTBzSW5SaFp5MXBiblJsY201aGJDSTZleUpuY21GdWRDMTBlWEJsSWpvaWNHRnpjM2R2Y21RaUxDSndjbTltYVd4bElqb2lUMEYxZEdneUlGQnliMlpwYkdVaUxDSmpiR2xsYm5RdGFXUWlPaUp0YjNacFpYTmZZWEJ3SWl3aWRtVnljMmx2YmlJNklqRXVNQ0lzSW5WelpYSnVZVzFsSWpvaVlXeHBZMlVpZlN3aVpYaHdJam94TlRNeE9EUTFORFEyTENKcFlYUWlPakUxTXpFNE5ETTJORFlzSW1WdFlXbHNJam9pWVd4cFkyVkFaVzFoYVd3dVkyOXRJaXdpYW5ScElqb2lNRE5qT1dJeE4ySXlOakZrWXpRd1l5SjkuIiwiZ3JhbnQtdHlwZSI6InBhc3N3b3JkIiwicHJvZmlsZSI6Ik9BdXRoMiBQcm9maWxlIiwicmVmcmVzaC10aW1lcyI6MCwiY2xpZW50LWlkIjoibW92aWVzX2FwcCIsInZlcnNpb24iOiIxLjAiLCJ1c2VybmFtZSI6ImFsaWNlIn0sImV4cCI6MTUzNDQzNTY0NiwiaWF0IjoxNTMxODQzNjQ2LCJqdGkiOiJmYjU2NzcyY2QxYzk2YWEzIn0.NMugrjGdCBZ28jKuJxAGXHlRiU53hCVnLSEpTyOVXMtDhLhsJstYmQ1YY5KqcZWhAvazqCVhyyh7IGsx-dSS9NE0FsLRSe3iwaYc6myveLzqALdXQcmReWZ4PIKW3us0UnDQExD9jv4zka0esf-5etBDHxW8AkmuSqzeAVHISG0ik8f-K05uvPGPc0UBAZdpTO0pIAWfMAfeM5ui7ZNLbpBnwGkyL1lmfGS0AN4Bvp4jJPJLsnVbjVvbUGasdoenQySbehs-mnyeWd5WyLlmIGS5TdcDVfuF6MnZJPMrOS6ZW_4CYlEB8F-GDg9puzRF1Ok0MczCyKJFhqfEIhybjg"
+```
+
+And you should get a new token:
+
+```json
+{
+    "access_token": "eyJraWQiOiJvYXV0aDIta2V5cGFpciIsImN0eSI6Impzb24iLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbi10eXBlIjoiYWNjZXNzLXRva2VuIiwibmJmIjoxNTMxODQzNzQ4LCJyb2xlcyI6WyJhZG1pbmlzdHJhdG9yIl0sIm5hbWUiOiJhbGljZSIsImlzcyI6Ilwvb2F1dGgyXC90b2tlbiIsImdyb3VwcyI6W10sInRhZy1pbnRlcm5hbCI6eyJncmFudC10eXBlIjoicmVmcmVzaF90b2tlbiIsInByb2ZpbGUiOiJPQXV0aDIgUHJvZmlsZSIsImNsaWVudC1pZCI6Im1vdmllc19hcHAiLCJ2ZXJzaW9uIjoiMS4wIiwidXNlcm5hbWUiOiJhbGljZSJ9LCJleHAiOjE1MzE4NDU1NDgsImlhdCI6MTUzMTg0Mzc0OCwiZW1haWwiOiJhbGljZUBlbWFpbC5jb20iLCJqdGkiOiJjOTNkOWI0YjMyOWU2YjBhIn0.ij2MZENY_NrTpPuoGsaWvBDZCW2D25AUhDoiUcRT5jEV8hNic8-nqHgWqove3-t07isWnhGhSNZ7TJbwoxV3W_0jEBq7M6Ex7fRCpQ3ezxBHqtYWwWMakXkjMLJn_Ym6ZfTGaDSbcV38tUJZiHmrxaGBRD1dHBZW0hL4RFJkTWPr0aI_GyXa0kxNAwERFD4kImc3T2kQuD1rZdzALy_NxxLkU20V4u8Ekk6f2f1kPdjervs8pH1EpP_DzguWvg_ZQmUma1BSdSN1Fpv8PWzenqPgyotx-uqlvbkpxcznqtz9fEcm2q-ZVvyvshUn5hRJRoNu5_9kLBG9ZqM2sB6z2w",
+    "expires_in": 1799,
+    "refresh_token": "eyJraWQiOiJvYXV0aDIta2V5cGFpciIsImN0eSI6Impzb24iLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbi10eXBlIjoicmVmcmVzaC10b2tlbiIsIm5iZiI6MTUzMTg0Mzc0OCwiaXNzIjoiXC9vYXV0aDJcL3Rva2VuIiwidGFnLWludGVybmFsIjp7Imp3dC1hY2Nlc3MtdG9rZW4iOiJleUpoYkdjaU9pSnViMjVsSW4wLmV5SjBiMnRsYmkxMGVYQmxJam9pWVdOalpYTnpMWFJ2YTJWdUlpd2libUptSWpveE5UTXhPRFF6TnpRNExDSnliMnhsY3lJNld5SmhaRzFwYm1semRISmhkRzl5SWwwc0ltNWhiV1VpT2lKaGJHbGpaU0lzSW1semN5STZJbHd2YjJGMWRHZ3lYQzkwYjJ0bGJpSXNJbWR5YjNWd2N5STZXMTBzSW5SaFp5MXBiblJsY201aGJDSTZleUpuY21GdWRDMTBlWEJsSWpvaWNtVm1jbVZ6YUY5MGIydGxiaUlzSW5CeWIyWnBiR1VpT2lKUFFYVjBhRElnVUhKdlptbHNaU0lzSW1Oc2FXVnVkQzFwWkNJNkltMXZkbWxsYzE5aGNIQWlMQ0oyWlhKemFXOXVJam9pTVM0d0lpd2lkWE5sY201aGJXVWlPaUpoYkdsalpTSjlMQ0psZUhBaU9qRTFNekU0TkRVMU5EZ3NJbWxoZENJNk1UVXpNVGcwTXpjME9Dd2laVzFoYVd3aU9pSmhiR2xqWlVCbGJXRnBiQzVqYjIwaUxDSnFkR2tpT2lKa1pXTTBaV0ZtT1Rsak1HUTJPRFl6SW4wLiIsImdyYW50LXR5cGUiOiJyZWZyZXNoX3Rva2VuIiwicHJvZmlsZSI6Ik9BdXRoMiBQcm9maWxlIiwicmVmcmVzaC10aW1lcyI6MSwiY2xpZW50LWlkIjoibW92aWVzX2FwcCIsInZlcnNpb24iOiIxLjAiLCJ1c2VybmFtZSI6ImFsaWNlIn0sImV4cCI6MTUzNDQzNTc0OCwiaWF0IjoxNTMxODQzNzQ4LCJqdGkiOiIzNzYwYzQ2ODNhZTU4ZmFhIn0.CRrfOsfMsfICfuSjY01OpHJqvO1KW1lsbqP1Jpg7zLr-urEn5S1XmHXQaiG4L8mvT-P5apkbtl8tbfMBKc90UIorg_MoeypIZVyy9hJxQltvOtNGMg3pX9iDylpiuqlfnqmZEAUwtp-gTE7p7uq2nq2bmGM7uy0YcvU3hu48Wtg3mamF5rQsDDOAFEBr9sN6vys_bsZ3xDheayCXGeOEaqkiDt6p_geyvlJ7lD5BvBAtowmZ0Qm95ZFznApWGbjMlDvMpJnAt3v8V8e0f1U1KrscI_c2Zh5CYWLfv5BzafL_1cExAwxZDFmgeayKHsLvzkrJQHjLyUO260SAZCpciw",
+    "scope": "administrator",
+    "token_type": "bearer"
+}
+```
+
+A new Access Token and Refresh Token are issued. The application needs to use the new issued Access Token, and when it
+needs to refresh again, the new Refresh Token.
+
+If you try to refresh with an old Refereh Token, you will get the following error:
+
+```json
+{
+    "error": "grant_invalid",
+    "error_description": "The refresh token is invalid"
+}
+```
+
+== Revoke a Token
+
+It is possible for the application to Revoke a Token, making it unusable. This allows to simulate a logout mechanism
+for clients and to clean up resources associated with the Token. TAG only allows revoking Refresh Tokens, since it
+doesn't keep the state about Access Tokens.
+
+TAG provides you a specific endpoint that you can use to revoke an `Access Token`. To revoke a token, you need the
+`access_token` response value and post it in the `token` form parameter with the following `curl` command:
+
+```bash
+curl -s -i \
+        "http://localhost:8080/oauth2/revoke" \
+        --user movies_app:moviessecret \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        --data-urlencode "token=eyJraWQiOiJvYXV0aDIta2V5cGFpciIsImN0eSI6Impzb24iLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbi10eXBlIjoicmVmcmVzaC10b2tlbiIsIm5iZiI6MTUzMTg0Mzc0OCwiaXNzIjoiXC9vYXV0aDJcL3Rva2VuIiwidGFnLWludGVybmFsIjp7Imp3dC1hY2Nlc3MtdG9rZW4iOiJleUpoYkdjaU9pSnViMjVsSW4wLmV5SjBiMnRsYmkxMGVYQmxJam9pWVdOalpYTnpMWFJ2YTJWdUlpd2libUptSWpveE5UTXhPRFF6TnpRNExDSnliMnhsY3lJNld5SmhaRzFwYm1semRISmhkRzl5SWwwc0ltNWhiV1VpT2lKaGJHbGpaU0lzSW1semN5STZJbHd2YjJGMWRHZ3lYQzkwYjJ0bGJpSXNJbWR5YjNWd2N5STZXMTBzSW5SaFp5MXBiblJsY201aGJDSTZleUpuY21GdWRDMTBlWEJsSWpvaWNtVm1jbVZ6YUY5MGIydGxiaUlzSW5CeWIyWnBiR1VpT2lKUFFYVjBhRElnVUhKdlptbHNaU0lzSW1Oc2FXVnVkQzFwWkNJNkltMXZkbWxsYzE5aGNIQWlMQ0oyWlhKemFXOXVJam9pTVM0d0lpd2lkWE5sY201aGJXVWlPaUpoYkdsalpTSjlMQ0psZUhBaU9qRTFNekU0TkRVMU5EZ3NJbWxoZENJNk1UVXpNVGcwTXpjME9Dd2laVzFoYVd3aU9pSmhiR2xqWlVCbGJXRnBiQzVqYjIwaUxDSnFkR2tpT2lKa1pXTTBaV0ZtT1Rsak1HUTJPRFl6SW4wLiIsImdyYW50LXR5cGUiOiJyZWZyZXNoX3Rva2VuIiwicHJvZmlsZSI6Ik9BdXRoMiBQcm9maWxlIiwicmVmcmVzaC10aW1lcyI6MSwiY2xpZW50LWlkIjoibW92aWVzX2FwcCIsInZlcnNpb24iOiIxLjAiLCJ1c2VybmFtZSI6ImFsaWNlIn0sImV4cCI6MTUzNDQzNTc0OCwiaWF0IjoxNTMxODQzNzQ4LCJqdGkiOiIzNzYwYzQ2ODNhZTU4ZmFhIn0.CRrfOsfMsfICfuSjY01OpHJqvO1KW1lsbqP1Jpg7zLr-urEn5S1XmHXQaiG4L8mvT-P5apkbtl8tbfMBKc90UIorg_MoeypIZVyy9hJxQltvOtNGMg3pX9iDylpiuqlfnqmZEAUwtp-gTE7p7uq2nq2bmGM7uy0YcvU3hu48Wtg3mamF5rQsDDOAFEBr9sN6vys_bsZ3xDheayCXGeOEaqkiDt6p_geyvlJ7lD5BvBAtowmZ0Qm95ZFznApWGbjMlDvMpJnAt3v8V8e0f1U1KrscI_c2Zh5CYWLfv5BzafL_1cExAwxZDFmgeayKHsLvzkrJQHjLyUO260SAZCpciw"
+```
+
+And the response should be a plain `200 - OK`.
+
+It is also possible to revoke the Refresh Token via the TAG UI. Just go to `http://localhost:8080/tag/refresh-tokens`.
+You should get a list of all valid Refresh Tokens. Deleting a Refresh Token entry is the same as Revoking it.
+
+== Configuration
+
+TODO
+
+=== Grant Types
+
+TODO
+
+=== Client Id
+
+TODO
+
+=== Access Token Policy
+
+TODO
+
+=== Refresh Token Policy
+
+TODO
+
+== Cleanup
+
+To stop TAG run the following command:
+
+```
+docker stop tag
+```
+
+And if you want to completely remove the associated Docker container run the following command:
+
+```
+docker remove tag
+```
+
+== Summary
+
+TODO
