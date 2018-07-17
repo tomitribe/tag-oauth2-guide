@@ -13,7 +13,6 @@
 
 * Learn about the TAG OAuth 2.0 Security Profile.
 * Learn how to manage an OAuth 2.0 Token (issue, validate, refresh and revoke).
-* Learn about the different configuration options.
 
 == Prerequisites
 
@@ -27,7 +26,7 @@
 The OAuth 2.0 Authorization framework provides a way to obtain limited access to user accounts to an HTTP service.
 
 Instead of using the resource owner's credentials to access protected resources, the client obtains an access
-token -- a string denoting a specific scope, lifetime, and other access attributes.  Access tokens are issued to
+token -- a string denoting a specific scope, lifetime, and other access attributes. Access tokens are issued to
 third-party clients by TAG with the approval of the resource owner. The client uses the access token to access the
 protected resources hosted by TAG or any other resource server.
 
@@ -195,7 +194,14 @@ If the Token is valid you should get a response similar to:
 }
 ```
 
-TODO - Add example for failure. Need to fix bug.
+You could also validate the JWT, using the external service http://jwt.io[jwt.io, window="_blank"]. Just copy the
+token into the `Encoded` text area. It actually unwraps the JWT, so you can see how it looks inside.
+
+To verify the TAG signature, you need the Public and Private key. These can be retrieved from the OAuth 2.0 Security
+Profile Detail page. Go to http://localhost:8080/tag/profile/oauth2/oauth2-profile and scroll to the `Signature`
+section. You should find a `Key Id` entry. Mouseover the `...` icon to reveal options to view the Public and Private
+key. You can copy both and used them in http://jwt.io[jwt.io, window="_blank"] by the `Verify Signature` section to
+validate the token.
 
 == Refresh a Token
 
@@ -261,26 +267,6 @@ And the response should be a plain `200 - OK`.
 It is also possible to revoke the Refresh Token via the TAG UI. Just go to `http://localhost:8080/tag/refresh-tokens`.
 You should get a list of all valid Refresh Tokens. Deleting a Refresh Token entry is the same as Revoking it.
 
-== Configuration
-
-TODO
-
-=== Grant Types
-
-TODO
-
-=== Client Id
-
-TODO
-
-=== Access Token Policy
-
-TODO
-
-=== Refresh Token Policy
-
-TODO
-
 == Cleanup
 
 To stop TAG run the following command:
@@ -297,4 +283,10 @@ docker remove tag
 
 == Summary
 
-TODO
+This guide was an introduction to the TAG OAuth 2.0 Token Management. It taught you how to issue, validate, refresh and
+revoke OAuth 2.0 tokens.
+
+With TAG OAuth 2.0 tokens, you can issue authorization tokens to third party applications with the approval of the
+resource owner, exposing only a limited fraction of the user information.
+
+Use TAG OAuth 2.0 tokens to share the user information in a safe and reliable way.
