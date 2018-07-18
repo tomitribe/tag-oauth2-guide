@@ -287,6 +287,24 @@ You should get a list of all the valid Refresh Tokens. Deleting a Refresh Token 
 
 image::oauth2-token-management-07-refresh-tokens.png[title="Refresh Tokens List"]
 
+And now if we try to validate using the `curl` command:
+
+```bash
+curl -s \
+        "http://localhost:8080/oauth2/introspect" \
+        --user admin:admin \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+       --data-urlencode "token=eyJraWQiOiJvYXV0aDIta2V5cGFpciIsImN0eSI6Impzb24iLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbi10eXBlIjoicmVmcmVzaC10b2tlbiIsIm5iZiI6MTUzMTg0Mzc0OCwiaXNzIjoiXC9vYXV0aDJcL3Rva2VuIiwidGFnLWludGVybmFsIjp7Imp3dC1hY2Nlc3MtdG9rZW4iOiJleUpoYkdjaU9pSnViMjVsSW4wLmV5SjBiMnRsYmkxMGVYQmxJam9pWVdOalpYTnpMWFJ2YTJWdUlpd2libUptSWpveE5UTXhPRFF6TnpRNExDSnliMnhsY3lJNld5SmhaRzFwYm1semRISmhkRzl5SWwwc0ltNWhiV1VpT2lKaGJHbGpaU0lzSW1semN5STZJbHd2YjJGMWRHZ3lYQzkwYjJ0bGJpSXNJbWR5YjNWd2N5STZXMTBzSW5SaFp5MXBiblJsY201aGJDSTZleUpuY21GdWRDMTBlWEJsSWpvaWNtVm1jbVZ6YUY5MGIydGxiaUlzSW5CeWIyWnBiR1VpT2lKUFFYVjBhRElnVUhKdlptbHNaU0lzSW1Oc2FXVnVkQzFwWkNJNkltMXZkbWxsYzE5aGNIQWlMQ0oyWlhKemFXOXVJam9pTVM0d0lpd2lkWE5sY201aGJXVWlPaUpoYkdsalpTSjlMQ0psZUhBaU9qRTFNekU0TkRVMU5EZ3NJbWxoZENJNk1UVXpNVGcwTXpjME9Dd2laVzFoYVd3aU9pSmhiR2xqWlVCbGJXRnBiQzVqYjIwaUxDSnFkR2tpT2lKa1pXTTBaV0ZtT1Rsak1HUTJPRFl6SW4wLiIsImdyYW50LXR5cGUiOiJyZWZyZXNoX3Rva2VuIiwicHJvZmlsZSI6Ik9BdXRoMiBQcm9maWxlIiwicmVmcmVzaC10aW1lcyI6MSwiY2xpZW50LWlkIjoibW92aWVzX2FwcCIsInZlcnNpb24iOiIxLjAiLCJ1c2VybmFtZSI6ImFsaWNlIn0sImV4cCI6MTUzNDQzNTc0OCwiaWF0IjoxNTMxODQzNzQ4LCJqdGkiOiIzNzYwYzQ2ODNhZTU4ZmFhIn0.CRrfOsfMsfICfuSjY01OpHJqvO1KW1lsbqP1Jpg7zLr-urEn5S1XmHXQaiG4L8mvT-P5apkbtl8tbfMBKc90UIorg_MoeypIZVyy9hJxQltvOtNGMg3pX9iDylpiuqlfnqmZEAUwtp-gTE7p7uq2nq2bmGM7uy0YcvU3hu48Wtg3mamF5rQsDDOAFEBr9sN6vys_bsZ3xDheayCXGeOEaqkiDt6p_geyvlJ7lD5BvBAtowmZ0Qm95ZFznApWGbjMlDvMpJnAt3v8V8e0f1U1KrscI_c2Zh5CYWLfv5BzafL_1cExAwxZDFmgeayKHsLvzkrJQHjLyUO260SAZCpciw"
+```
+
+You should get a response back stating that the token is now invalid:
+
+```json
+{
+    "active": false
+}
+```
+
 == Cleanup
 
 To stop TAG run the following command:
