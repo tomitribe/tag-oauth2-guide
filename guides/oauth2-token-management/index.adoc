@@ -18,13 +18,13 @@
 
 * Docker
 * Curl
-* TAG Quickstarg Guide (optional)
+* TAG Quickstart Guide (optional)
 * Python (optional)
 * Python Pygments (optional)
 
 == The OAuth 2.0 Authorization Framework
 
-The OAuth 2.0 Authorization framework provides a way to obtain limited access to user accounts to an HTTP service.
+The OAuth 2.0 Authorization framework provides a way to obtain limited access to user information on an HTTP service.
 
 Instead of using the resource owner's credentials to access protected resources, the client obtains an access
 token -- a string denoting a specific scope, lifetime, and other access attributes. Access tokens are issued to
@@ -33,9 +33,9 @@ protected resources hosted by TAG or any other resource server.
 
 The TAG OAuth 2.0 implementation, based on the https://tools.ietf.org/html/rfc6749[RFC OAuth2 Authorization Framework],
 uses JSON Web Tokens (JWT https://tools.ietf.org/html/rfc7519[RFC JSON Web Tokens]) as the tokens issued and used to
-authenticate to access endpoints.
+authenticate and access protected endpoints.
 
-JWT tokens consist of a header and a set of claims, which are both Base64 encoded, and a signature calculated using RSA
+JWT tokens consist of a header, a set of claims, which are both Base64 encoded, and a signature calculated using RSA
 with SHA256. Overall, this creates three Base64 strings which are concatenated together with dots (.). Each use of a
 JWT token within TAG is validated using the TAG RSA public key, preventing tokens issued by the TAG from being tampered
 with.
@@ -254,7 +254,7 @@ And the response should get you a new token:
 Both Access Token and Refresh Token are issued again. The client uses the new issued Access Token, and when it needs to
 refresh again, uses new Refresh Token.
 
-If you try to refresh with an old Refresh Token, you will get the following error:
+    If you try to refresh with an old Refresh Token, you will get the following error:
 
 ```json
 {
@@ -270,7 +270,7 @@ for clients and clean up resources associated with the Token. TAG only allows re
 doesn't keep the state about Access Tokens.
 
 The TAG provides you a specific endpoint that you can use to revoke an `Access Token`. To revoke a token, you need the
-`access_token` response value and post it in the `token` Form Parameter with the following `curl` command:
+`refresh_token` response value and post it in the `token` Form Parameter with the following `curl` command:
 
 ```bash
 curl -s -i \
