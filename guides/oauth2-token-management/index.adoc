@@ -186,7 +186,7 @@ command:
 ```bash
 curl -s \
         "http://localhost:8080/oauth2/introspect" \
-        --user movies:moviessecret \
+        --user admin:admin \
         -H 'Content-Type: application/x-www-form-urlencoded' \
         --data-urlencode "token=ACCESS_TOKEN_REPLACE_ME"
 ```
