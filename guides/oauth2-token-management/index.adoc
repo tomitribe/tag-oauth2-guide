@@ -234,6 +234,7 @@ will look like this:
 ```bash
 curl -s \
         "http://localhost:8080/oauth2/token" \
+        --user movies_app:moviessecret \
         -H 'Content-Type: application/x-www-form-urlencoded' \
         --data-urlencode "grant_type=refresh_token" \
         --data-urlencode "refresh_token=REFRESH_TOKEN_REPLACE_ME"
