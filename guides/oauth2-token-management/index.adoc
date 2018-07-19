@@ -306,6 +306,32 @@ You should get a response back stating that the token is now invalid:
 }
 ```
 
+== OAuth 2.0 Security Profile
+
+The OAuth 2.0 Security Profile allows you to configure different aspectes related with OAuth 2.0 and the Token
+generation.
+
+In the issue section, you are able to change the endpoint used to issue the OAuth 2 Token, plus set the available
+OAuth 2 flows or make the client id mandatory.
+
+In the validation section, you are able to set up the header and the prefix used to authenticate the token when
+accessing a protected resource behind the TAG.
+
+The Access Token Policy allows you to set the expiration time of a token after being issued or make the token valid
+forever.
+
+The Refresh Token Policy also allows you to set the expiration time of a token after being issued or make the token
+valid forever. Plus, you can set a limit to the number of refreshes or disallow it completely.
+
+The Signature section is where the key to sign the JWT is setup. The TAG can auto-generate the key for you, or you
+can input your own.
+
+Finally, the Claims section allows you to retrieve user data from other sources to enhance the JOT payload.
+
+Remember, you can create multiple OAuth 2 Security Profiles, with different configurations that will generate
+different JOTs. In this way, you can customize the experience of third-party clients trying to retrieve user
+information.
+
 == Cleanup
 
 To stop TAG run the following command:
