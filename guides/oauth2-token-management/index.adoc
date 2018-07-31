@@ -19,8 +19,7 @@
 * Docker
 * Curl
 * TAG Quickstart Guide (optional)
-* Python (optional)
-* Python Pygments (optional)
+* Python and Python Pygments (optional)
 
 == The OAuth 2.0 Authorization Framework
 
